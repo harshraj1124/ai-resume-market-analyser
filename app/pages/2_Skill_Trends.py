@@ -2,7 +2,13 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+import sys
+
 import streamlit as st
+
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT))
 
 from app.ui import apply_filters, export_button, inject_theme, load_data, sidebar_filters
 from src.frequency_analysis import skill_frequency

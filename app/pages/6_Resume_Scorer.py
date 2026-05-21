@@ -4,16 +4,19 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import sys
 
 import pandas as pd
 import streamlit as st
+
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT))
 
 from app.ui import inject_theme, load_data
 from src.gap_analysis import compute_gap_table
 from src.skill_extractor import SkillExtractor, load_taxonomy
 from src.visualization import radar_chart
 
-ROOT = Path(__file__).resolve().parents[2]
 TAXONOMY_PATH = ROOT / "data" / "synthetic" / "skills_taxonomy.json"
 
 SAMPLE_RESUME = """\
