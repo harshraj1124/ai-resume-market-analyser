@@ -1,4 +1,4 @@
-"""Skill trends page — demand/supply leaders, word cloud, salary intelligence."""
+"""Skill trends page: demand/supply leaders, word cloud, salary intelligence."""
 
 from __future__ import annotations
 

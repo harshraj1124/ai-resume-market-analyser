@@ -1,4 +1,4 @@
-"""Skill Demand Forecast page — forward-looking market intelligence."""
+"""Skill Demand Forecast page: forward-looking market intelligence."""
 
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ st.caption(
     "Solid lines = observed data. Dotted lines = 6-month projection."
 )
 
-with st.spinner("Computing forecasts…"):
+with st.spinner("Computing forecasts..."):
     cd = chart_data(jobs_view, top_n=8, forecast_months=6)
     ft = forecast_table(jobs_view, top_n=12, horizons=[3, 6, 12])
     gr = growth_ranking(jobs_view, top_n=15)
@@ -43,7 +43,7 @@ with col_b:
         pivot = ft[ft["horizon_months"] == 12][
             ["skill", "forecasted_demand", "trend_slope", "current_demand", "r2_score"]
         ].sort_values("forecasted_demand", ascending=False)
-        pivot.columns = ["Skill", "Forecast (12m)", "Monthly Slope", "Current Demand", "R²"]
+        pivot.columns = ["Skill", "Forecast (12m)", "Monthly Slope", "Current Demand", "R^2"]
         st.dataframe(pivot, use_container_width=True, hide_index=True)
 
 st.divider()
@@ -58,7 +58,7 @@ if not ft.empty:
             "trend_slope": "Monthly Slope",
             "current_demand": "Current Demand",
             "avg_monthly_demand": "Avg Monthly",
-            "r2_score": "R²",
+            "r2_score": "R^2",
         }
     )
     st.dataframe(display, use_container_width=True, hide_index=True)
@@ -68,5 +68,5 @@ else:
 
 st.caption(
     "Model: Ordinary Least Squares linear regression on monthly unique job-posting counts per skill. "
-    "R² values above 0.7 indicate reliable trends."
+    "R^2 values above 0.7 indicate reliable trends."
 )

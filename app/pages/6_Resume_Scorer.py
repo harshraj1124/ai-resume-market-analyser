@@ -1,10 +1,11 @@
-"""Resume Market-Fit Scorer — paste a resume and get an instant market intelligence report."""
+"""Resume Market-Fit Scorer: paste a resume and get an instant market intelligence report."""
 
 from __future__ import annotations
 
 import json
 from pathlib import Path
 
+import pandas as pd
 import streamlit as st
 
 from app.ui import inject_theme, load_data
@@ -39,13 +40,13 @@ def _extractor() -> SkillExtractor:
         taxonomy = load_taxonomy(TAXONOMY_PATH)
     else:
         from src.data_generator import SKILL_TAXONOMY
+
         taxonomy = SKILL_TAXONOMY
     return SkillExtractor(taxonomy, use_spacy=False)
 
 
 extractor = _extractor()
 
-# ── Header ────────────────────────────────────────────────────────────────────
 st.title("Resume Market-Fit Scorer")
 st.caption(
     "Paste any resume text below. The system extracts your skills and scores them "
@@ -74,20 +75,18 @@ with col_info:
         5. Upskilling picks are the highest-gap skills adjacent to your profile
         """
     )
-    st.info("No data leaves your browser. Analysis runs entirely on local data.", icon="🔒")
+    st.info("No data leaves your browser. Analysis runs entirely on local data.")
 
 if not analyze:
     st.stop()
 
-# ── Extraction ────────────────────────────────────────────────────────────────
-with st.spinner("Extracting skills…"):
+with st.spinner("Extracting skills..."):
     detected = extractor.extract(resume_text)
 
 if not detected:
     st.warning("No recognizable skills found. Try adding more technical terms.")
     st.stop()
 
-# ── Scoring logic ─────────────────────────────────────────────────────────────
 detected_set = set(detected)
 gap_indexed = gap.set_index("skill")
 
@@ -102,11 +101,11 @@ matched_positive = detected_set & all_positive_gap
 coverage_score = (
     len(matched_critical) * 3
     + len(matched_high - matched_critical) * 2
-    + len(matched_positive - matched_high) * 1
+    + len(matched_positive - matched_high)
 ) / max(
     len(critical_skills) * 3
     + len(high_demand_skills - critical_skills) * 2
-    + len(all_positive_gap - high_demand_skills) * 1,
+    + len(all_positive_gap - high_demand_skills),
     1,
 )
 market_fit_pct = min(100, round(coverage_score * 100))
@@ -114,7 +113,6 @@ market_fit_pct = min(100, round(coverage_score * 100))
 missing_critical = critical_skills - detected_set
 missing_high = (high_demand_skills - critical_skills) - detected_set
 
-# ── Top metrics ───────────────────────────────────────────────────────────────
 st.divider()
 m1, m2, m3, m4 = st.columns(4)
 m1.metric("Skills Detected", len(detected))
@@ -122,7 +120,6 @@ m2.metric("Market-Fit Score", f"{market_fit_pct}%")
 m3.metric("Critical Gaps Covered", f"{len(matched_critical)} / {len(critical_skills)}")
 m4.metric("High-Demand Gaps Covered", f"{len(matched_high)} / {len(high_demand_skills)}")
 
-# ── Score badge ───────────────────────────────────────────────────────────────
 if market_fit_pct >= 70:
     badge, badge_color = "STRONG FIT", "#00ff9d"
     message = "Your skill profile aligns well with current market demand. Focus on topping up critical shortage areas."
@@ -144,7 +141,6 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# ── Radar + skill breakdown ───────────────────────────────────────────────────
 left, right = st.columns([1.1, 1])
 
 with left:
@@ -177,16 +173,13 @@ with right:
                     "Supply": 0,
                 }
             )
-    import pandas as pd
     skill_df = pd.DataFrame(skill_rows).sort_values("Gap Score", ascending=False)
     st.dataframe(skill_df, use_container_width=True, hide_index=True, height=380)
 
-# ── Upskilling recommendations ────────────────────────────────────────────────
 st.divider()
 st.subheader("Upskilling Recommendations")
 st.caption("High-gap skills closest to your current profile, ranked by urgency.")
 
-# Score adjacency: category-overlap between candidate skills and missing skills
 candidate_categories = {extractor.categorize(s) for s in detected}
 
 upskillers = []
@@ -211,11 +204,11 @@ if upskillers:
     for i, rec in enumerate(upskillers[:6], 1):
         with st.container(border=True):
             c1, c2, c3 = st.columns([0.3, 0.4, 0.3])
-            c1.markdown(f"**#{i} — {rec['skill']}**")
+            c1.markdown(f"**#{i} - {rec['skill']}**")
             c1.caption(rec["gap_category"])
             c2.write(
                 f"Gap score: **{rec['gap_score']:.3f}** &nbsp;|&nbsp; "
-                f"{'Adjacent to your skills' if rec['adjacent'] else 'New category — high reward'}",
+                f"{'Adjacent to your skills' if rec['adjacent'] else 'New category - high reward'}",
                 unsafe_allow_html=True,
             )
             c2.write(f"Market demand: **{rec['demand']}** open roles requiring this skill.")
@@ -223,7 +216,6 @@ if upskillers:
 else:
     st.success("You already cover all critical and high-demand skills. Consider deepening existing expertise.")
 
-# ── Export ────────────────────────────────────────────────────────────────────
 st.divider()
 report = {
     "market_fit_score": market_fit_pct,

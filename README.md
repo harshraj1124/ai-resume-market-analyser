@@ -54,6 +54,29 @@ python main_pipeline.py
 streamlit run app/main.py
 ```
 
+## Deploy on Streamlit Community Cloud
+
+1. Push this project to GitHub.
+2. Open [share.streamlit.io](https://share.streamlit.io/) and choose **New app**.
+3. Select your repository and branch.
+4. Set **Main file path** to:
+
+```text
+app/main.py
+```
+
+5. Deploy.
+
+The app auto-generates demo data on first startup when `data/processed/*.parquet` files are missing, so you do not need to commit generated datasets. Keep `requirements.txt`, `runtime.txt`, and `.streamlit/config.toml` in the repository root for Streamlit Cloud.
+
+If you deploy from the outer folder in this workspace, use this main file path instead:
+
+```text
+ai-resume-market-analyzer/app/main.py
+```
+
+For the fastest first load, you can run the smaller demo data generation locally before deploying and commit the generated parquet files, but the default setup keeps the repository lightweight.
+
 ## Project Structure
 
 ```text
